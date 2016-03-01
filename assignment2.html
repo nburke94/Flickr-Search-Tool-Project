@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Flickr</title>
+<link rel="stylesheet" type="text/css" href="assignment2.css">
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.0.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-1.11.2.js"></script>
+<script type="text/javascript">
+
+
+
+// Carousel Functionality
+ $(document).ready(function() {
+        // If the user clicks to slide left he will be able to see the last image.
+        $('#carousel_ul li:first').before($('#carousel_ul li:last')); 
+        
+        
+        // When user clicks to slide right        
+        $('#right_scroll img').click(function(){
+        
+            //get the width of the items
+            var item_width = $('#carousel_ul li').outerWidth() + 150;
+            
+            // Calculate the left indent of the unordered list
+            var left_indent = parseInt($('#carousel_ul').css('left')) - item_width;
+            
+            // Make the JQuery sliding effect
+            $('#carousel_ul:not(:animated)').animate({'left' : left_indent},600,function(){    
+                
+                //get the first list item and put it after the last list item
+                $('#carousel_ul li:last').after($('#carousel_ul li:first')); 
+                
+                
+            }); 
+        });
+        
+	
+
+	
+/* Centering Image in Carousel
+halfOuterW = document.getElementById("outerdiv").offsetWidth / 2;
+halfImageW = document.getElementById("image").offsetWidth / 2;
+outerLeftOffset = halfOuterW - halfImageW; 
+
+LeftPos = outerLeftOffset - innerLeftOffset;
+document.getElementById("flickrimages").style.left = leftPos + "px"; */
+		
+		
+		
+		
+        // When user clicks the image for sliding left
+        $('#left_scroll img').click(function(){
+            
+			//get the width of the items
+            var item_width = $('#carousel_ul li').outerWidth() + 150;
+            
+            // Same as for sliding right except that it's current left indent + the item width
+            var left_indent = parseInt($('#carousel_ul').css('left')) + item_width;
+            
+			// Make the JQuery sliding effect
+            $('#carousel_ul:not(:animated)').animate({'left' : left_indent},600,function(){    
+            
+            // When sliding to left we are moving the last item before the first list item          
+            $('#carousel_ul li:first').before($('#carousel_ul li:last')); 
+            
+  
+            });
+            
+            
+        });
+  });
+
+  
+  
+ 
+  
+// Flickr API Implementation
+// Flickr API Request on Submit
+
+$(document).ready(function() {
+    $("#button").click(function() {
+      $("#flickrimages").empty();
+      var tags = [];
+      $(".textbox").each(function() {
+        tags.push(this.value);
+      });
+      console.log(tags)
+	  // add loading image to div
+    $('#loading').html('<img src="loading.gif">');
+	
+	
+	//success: function (d) {
+            // replace div's content with returned data
+            // $('#loading').html('<img src="'+d.avatar_url+'"><br>'+d.login);
+            // setTimeout added to show loading
+            //setTimeout(function () {
+                //$('#loading').html('<img src="' + d.avatar_url + '"><br>' + d.login);
+            //}, 1000);
+        //}
+
+		//success:function(data){
+      
+	
+    
+      $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?", {
+        tags: tags.join(" "),
+        tagmode: "any",
+        format: "json"
+      }, function(data) {
+	  
+        console.log(data);
+        $.each(data.items, function(i, item) {
+		$(".loadergif").remove();
+          $('<img/>').attr("src", item.media.m).appendTo('#flickrimages');
+          if (i == 30) return false;
+		  
+		$('#loading').hide();  //<--- hide again
+		
+		
+		// If no results found from API search, do the following.
+		var noResults = function(){
+			if(JSONobject.property === 0){
+				$(this).html('No results');
+			}
+		}
+		
+		
+		  			$('#flickrimages').on('click', 'img', function () {
+      $('#mainImage').attr('src', $(this).attr('src'));
+});
+        });
+      });
+    });
+    $('#flickrimages').on('click', 'img', function() {
+    });
+	
+	
+	// Add additional tag fields function
+    var counter = 2;
+	
+    $("#addButton").click(function() {
+
+        if (counter > 4) {
+          alert("Only 4 Tag Fields allowed");
+          return false;
+        }
+		
+      var newTextBoxDiv = $(document.createElement('div')).attr("id", 'TextBoxDiv' + counter);
+      newTextBoxDiv.after().html('<label></label>' +
+        '<input type="text" class="textbox" name="textbox' + counter +
+        '" id="textbox' + counter + '" value="" >');
+      newTextBoxDiv.appendTo("#TextBoxesGroup");
+      counter++;
+	  
+	  
+	  
+	  
+    });
+	
+	// Remove tag fields function
+	$("#removeButton").click(function() {
+        if (counter == 2) {
+          alert("Minimum Tag Fields: 1 ");
+          return false;
+        }
+        counter--;
+
+        $("#TextBoxDiv" + counter).remove();
+      });
+
+	
+	
+	
+	// Get button value
+    $("#getButtonValue").click(function() {
+      var msg = '';
+      for (i = 1; i < counter; i++) {
+        msg += "\n Textbox #" + i + " : " + $('#textbox' + i).val();
+      }
+      alert(msg);
+    });
+  });
+
+
+
+
+
+</script>
+</head>
+
+
+<body>
+<div id="leftContainer">
+
+	<h1>Tags</h1>
+
+	<div id = "tags">
+		<script src="/wp-includes/js/addInput.js" language="Javascript" type="text/javascript"></script>
+		<form method="POST">
+				<input type='button' value=' + ' id='addButton' />
+			<div id='TextBoxesGroup'>
+				<div id="TextBoxDiv1">
+					<input type='textbox' class="textbox" id='textbox1'>
+					<input type='button' value=' - ' id='removeButton'>
+				</div>
+			</div>
+		</form>
+	</div>
+	
+          <div class="input">
+			<button type="button" id="button">Find Images</button>
+			<div id="loading"></div>
+          </div>        
+</div>
+
+<div id = "carousel">
+<div id="outerdiv">
+<div id='carousel_container'>
+  <div id='left_scroll'><img src='left.png' height="160" /></div>
+    <div id='carousel_inner'>
+        <ul id='carousel_ul'>
+            <div id="flickrimages" /></div>
+        </ul>
+    </div>
+    <div id='right_scroll'><img src='right.png' height="160" /></div>
+</div>
+</div>
+<div id="maincontainer">
+<div id="loading"></div>
+    <img id='mainImage' src='' />
+</div>
+
+</body>
+</html>
